@@ -200,7 +200,7 @@
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.dom4j/dom4j -->
         <dependency>
-            <groupId>org.dom4j</groupId>do
+            <groupId>org.dom4j</groupId>
             <artifactId>dom4j</artifactId>
             <version>2.1.3</version>
         </dependency>
@@ -227,6 +227,7 @@
             <artifactId>jjwt</artifactId>
             <version>0.9.1</version>
         </dependency>
+
 
         <dependency>
             <groupId>org.json</groupId>
@@ -281,23 +282,24 @@
         </dependency>
 
         <dependency>
+            <groupId>javax.servlet</groupId>
+            <artifactId>javax.servlet-api</artifactId>
+            <version>4.0.1</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
             <version>2.10.0</version>
         </dependency>
 
-        <!--        <dependency>-->
-        <!--            <groupId>javax.servlet</groupId>-->
-        <!--            <artifactId>jstl</artifactId>-->
-        <!--            <version>1.2</version>-->
-        <!--        </dependency>-->
-        <!-- https://mvnrepository.com/artifact/org.apache.taglibs/taglibs-standard-impl -->
-        <dependency>
-            <groupId>org.apache.taglibs</groupId>
-            <artifactId>taglibs-standard-impl</artifactId>
-            <version>1.2.5</version>
-            <scope>runtime</scope>
-        </dependency>
+        <!--		<dependency>-->
+        <!--			<groupId>org.apache.taglibs</groupId>-->
+        <!--			<artifactId>taglibs-standard-impl</artifactId>-->
+        <!--			<version>1.2.5</version>-->
+        <!--			<scope>runtime</scope>-->
+        <!--		</dependency>-->
 
         <!-- For Swagger Configuration End -->
 
@@ -305,6 +307,7 @@
             <groupId>org.modelmapper</groupId>
             <artifactId>modelmapper</artifactId>
             <version>2.3.5</version>
+
         </dependency>
         <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
         <dependency>
