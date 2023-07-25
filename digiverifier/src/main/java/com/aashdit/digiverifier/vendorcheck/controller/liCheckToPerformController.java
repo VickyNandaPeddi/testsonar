@@ -53,7 +53,7 @@ public class liCheckToPerformController {
     @ApiOperation(value = "performs vendorcheck and save the data")
     @PostMapping(value = "/udpdateBgvCheckStatusRowwise", consumes = {MediaType.APPLICATION_JSON_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE})
     public ServiceOutcome<String> udpdateBgvCheckStatusRowwise(@RequestParam String vendorchecks, @RequestParam(value = "file", required = false) MultipartFile proofDocumentNew) {
-        String data = liCheckToPerformService.UpdateBGVCheckStatusRowwise(vendorchecks, proofDocumentNew,"4");
+        String data = liCheckToPerformService.UpdateBGVCheckStatusRowwise(vendorchecks, proofDocumentNew, "4");
         ServiceOutcome<String> response = new ServiceOutcome<>();
         response.setData(data);
         response.setData(response.getData());
@@ -241,11 +241,13 @@ public class liCheckToPerformController {
     @ApiOperation(value = "finds All LiChecksRequired and returns the data")
     @GetMapping(value = "/updateCandidateStatus")
     public ServiceOutcome<String> updateConventionalCandidateStatusByLicheckStatus() throws Exception {
+        log.info("updateConventionalCandidateStatusByLicheckStatus starts");
         ServiceOutcome<String> response = liCheckToPerformService.updateCandidateStatusByLicheckStatus();
         response.setData(response.getData());
         response.setStatus("200");
         response.setOutcome(true);
         response.setMessage("liCheckPerform Saved Sucessfully");
+        log.info("updateConventionalCandidateStatusByLicheckStatus ends");
         return response;
     }
 
@@ -352,7 +354,7 @@ public class liCheckToPerformController {
     }
 
     @ApiOperation(value = "generate response for Report response")
-    @RequestMapping(value = "/generateJsonResponse", method = {RequestMethod.GET}, produces = "application/json")
+    @RequestMapping(value = "/generateConventionalUtilizationReport", method = {RequestMethod.GET}, produces = "application/json")
     public ServiceOutcome<List<ReportUtilizationDto>> generateJsonResponse() throws Exception {
         ServiceOutcome<List<ReportUtilizationDto>> response = liCheckToPerformService.generateJsonResponse3();
         response.setData(response.getData());
@@ -405,7 +407,7 @@ public class liCheckToPerformController {
 
     @ApiOperation("Get By Id ConventionalAttributesMaster")
     @GetMapping("/getConventionalAttributesMaster/{vendorCheckId}")
-    public ResponseEntity<ServiceOutcome<ConventionalAttributesMaster>> getConventionalAttributesMasterById(@PathVariable("vendorCheckId")Long sourceId) {
+    public ResponseEntity<ServiceOutcome<ConventionalAttributesMaster>> getConventionalAttributesMasterById(@PathVariable("vendorCheckId") Long sourceId) {
         ServiceOutcome<ConventionalAttributesMaster> svcSearchResult = liCheckToPerformService.getConventionalAttributesMasterById(sourceId);
         return new ResponseEntity<ServiceOutcome<ConventionalAttributesMaster>>(svcSearchResult, HttpStatus.OK);
 

@@ -1234,6 +1234,8 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
     public ServiceOutcome<String> updateCandidateStatusByLicheckStatus() {
         ServiceOutcome<String> serviceOutcome = new ServiceOutcome<String>();
         try {
+            Date startDate = new Date();
+//            Date endDate = formatter.parse(new Date() + " 23:59:59");
             List<ConventionalVendorCandidatesSubmitted> candidatesSubmitteds = conventionalCandidatesSubmittedRepository.findAll();
             for (ConventionalVendorCandidatesSubmitted candidatesSubmitted : candidatesSubmitteds) {
                 if (liCheckToPerformRepository.existsByRequestId(String.valueOf(candidatesSubmitted.getRequestId())) == true) {
@@ -1979,9 +1981,9 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
                     content.setContentCategory(ContentCategory.OTHERS);
                     content.setContentSubCategory(ContentSubCategory.PRE_APPROVAL);
                     // System.out.println(content+"*******************************************content");
-                    if (reportType.name() == "PRE_OFFER") {
+                    if (reportType.name().equalsIgnoreCase("PRE_OFFER")) {
                         content.setContentSubCategory(ContentSubCategory.PRE_APPROVAL);
-                    } else if (reportType.name() == "FINAL") {
+                    } else if (reportType.name().equalsIgnoreCase("FINAL")) {
                         content.setContentSubCategory(ContentSubCategory.FINAL);
                     }
                     content.setFileType(FileType.PDF);
@@ -2229,8 +2231,9 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
         ArrayList<ReportUtilizationDto> reportUtilizationDtos = new ArrayList<>();
         try {
             List<VendorChecks> all = vendorChecksRepository.findAllVendorChecksInVendorUploadChecks();
+            List<VendorChecks> firstTwoRecords = all.subList(0, Math.min(all.size(), 2));
             List<Long> vendorIdList = new ArrayList<>();
-            for (VendorChecks vendorChecks : all) {
+            for (VendorChecks vendorChecks : firstTwoRecords) {
                 ReportUtilizationDto reportUtilizationDto = new ReportUtilizationDto();
                 Long vendorId = vendorChecks.getVendorId();
                 reportUtilizationDto.setVendorId(vendorId);
@@ -2682,7 +2685,6 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
 
     @Transactional
     public ServiceOutcome<List<ReportUtilizationDto>> generateJsonResponse3() throws Exception {
-
         ServiceOutcome<List<ReportUtilizationDto>> serviceOutcome = new ServiceOutcome<>();
         List<ReportUtilizationDto> reportUtilizationDtos = new ArrayList<>();
         try {
@@ -2700,14 +2702,17 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
                 Long candidateId = reportUtilizationVendorDto.getCandidateId();
                 Long vendorId = reportUtilizationVendorDto.getVendorId();
 
-
                 for (String sourceIdData : sourceId) {
                     ArrayList<ChecksDto> checksDtos = new ArrayList<>();
                     String[] split = sourceIdData.split(",");
                     for (int j = 0; j < split.length; j++) {
                         String srcid = split[j];
                         Source source = sourceRepository.findById(Long.valueOf(srcid)).get();
-                        Sheet sheet1 = workbook.getSheet(source.getSourceName());
+                        String sheetName = source.getSourceName();
+                        if (sheetName.length() > 31) {
+                            sheetName = sheetName.substring(0, 31);
+                        }
+                        Sheet sheet1 = workbook.getSheet(sheetName);
                         int rowno = 2;
                         int datarowNo = 3;
                         if (sheet1 == null) {
@@ -2721,10 +2726,10 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
                             headerRow.createCell(4).setCellValue("Case Assigned Date");
                             headerRow.createCell(5).setCellValue("Report Submitted Date");
                             headerRow.createCell(6).setCellValue("Report Color Code");
-                            for (int i = 0; i <= 6; i++) {
-                                Cell cell = headerRow.getCell(i);
-                                cell.setCellStyle(headerCellStyle);
-                            }
+//                            for (int i = 0; i <= 6; i++) {
+//                                Cell cell = headerRow.getCell(i);
+//                                cell.setCellStyle(headerCellStyle);
+//                            }
                             //licheck data
                             headerRow.createCell(7).setCellValue("Detail Name");
                             headerRow.createCell(8).setCellValue("Qty");
@@ -2739,27 +2744,49 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
                             for (VendorChecks vendorChecks : byCandidateIdANdVendorIdAndCandidateId) {
                                 Row dataRow = sheet.createRow(datarowNo);
                                 User user = userRepository.findById(vendorId).get();
-                                dataRow.createCell(0).setCellValue(user.getUserFirstName());
+                                if (user.getUserFirstName() != null) {
+                                    dataRow.createCell(0).setCellValue(user.getUserFirstName());
+                                }
                                 User caseInitatedBy = userRepository.findById(vendorChecks.getCreatedBy().getUserId()).get();
-                                dataRow.createCell(1).setCellValue(String.valueOf(caseInitatedBy.getUserName()));
-                                ConventionalVendorCandidatesSubmitted conventionalVendorCandidatesSubmitted = conventionalCandidatesSubmittedRepository.findById(vendorChecks.getCandidate().getConventionalCandidateId()).get();
-                                dataRow.createCell(2).setCellValue(conventionalVendorCandidatesSubmitted.getApplicantId());
-                                dataRow.createCell(3).setCellValue(vendorChecks.getCandidateName());
-                                dataRow.createCell(4).setCellValue(String.valueOf(vendorChecks.getCreatedOn()));
+                                if (caseInitatedBy.getUserName() != null) {
+                                    dataRow.createCell(1).setCellValue(String.valueOf(caseInitatedBy.getUserName()));
+                                }
+
+                                ConventionalVendorCandidatesSubmitted conventionalVendorCandidatesSubmitted = conventionalCandidatesSubmittedRepository.findByRequestId(String.valueOf(vendorChecks.getCandidate().getConventionalRequestId()));
+                                if (conventionalVendorCandidatesSubmitted != null) {
+                                    dataRow.createCell(2).setCellValue(conventionalVendorCandidatesSubmitted.getApplicantId());
+                                }
+                                if (vendorChecks.getCandidateName() != null) {
+                                    dataRow.createCell(3).setCellValue(vendorChecks.getCandidateName());
+                                }
+                                if (vendorChecks.getCreatedOn() != null) {
+                                    dataRow.createCell(4).setCellValue(String.valueOf(vendorChecks.getCreatedOn()));
+                                }
                                 CandidateVerificationState canidateVerificationData = candidateVerificationStateRepository.findByCandidateCandidateId(vendorChecks.getCandidate().getCandidateId());
                                 if (canidateVerificationData != null) {
                                     dataRow.createCell(5).setCellValue(String.valueOf(canidateVerificationData.getInterimReportTime()));
                                 }
                                 List<VendorMasterNew> byUserId = vendorMasterNewRepository.findByUserId(vendorId);
                                 byUserId.forEach(data -> {
-                                    dataRow.createCell(9).setCellValue(data.getRatePerItem());
-                                    dataRow.createCell(11).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size() * data.getRatePerItem());
+                                    if (data.getRatePerItem() != null) {
+                                        dataRow.createCell(9).setCellValue(data.getRatePerItem());
+                                    }
+                                    if (byCandidateIdANdVendorIdAndCandidateId.isEmpty() == false) {
+                                        dataRow.createCell(11).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size() * data.getRatePerItem());
+                                    }
                                 });
-                                dataRow.createCell(6).setCellValue(conventionalVendorCandidatesSubmitted.getVerificationStatus());
-                                dataRow.createCell(7).setCellValue(vendorChecks.getSource().getSourceName());
-                                dataRow.createCell(8).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size());
-                                dataRow.createCell(10).setCellValue(vendorChecks.getVendorCheckStatusMaster().getCheckStatusCode());
-
+                                if (conventionalVendorCandidatesSubmitted.getVerificationStatus() != null) {
+                                    dataRow.createCell(6).setCellValue(conventionalVendorCandidatesSubmitted.getVerificationStatus());
+                                }
+                                if (vendorChecks.getSource().getSourceName() != null) {
+                                    dataRow.createCell(7).setCellValue(vendorChecks.getSource().getSourceName());
+                                }
+                                if (byCandidateIdANdVendorIdAndCandidateId.isEmpty() == false) {
+                                    dataRow.createCell(8).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size());
+                                }
+                                if (vendorChecks.getVendorCheckStatusMaster() != null) {
+                                    dataRow.createCell(10).setCellValue(vendorChecks.getVendorCheckStatusMaster().getCheckStatusCode());
+                                }
                             }
                         } else {
 
@@ -2767,29 +2794,49 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
                             for (VendorChecks vendorChecks : byCandidateIdANdVendorIdAndCandidateId) {
                                 Row dataRow = sheet1.createRow(datarowNo + 1);
                                 User user = userRepository.findById(vendorId).get();
-                                dataRow.createCell(0).setCellValue(user.getUserFirstName());
+                                if (user.getUserFirstName() != null) {
+                                    dataRow.createCell(0).setCellValue(user.getUserFirstName());
+                                }
                                 User caseInitatedBy = userRepository.findById(vendorChecks.getCreatedBy().getUserId()).get();
-                                dataRow.createCell(1).setCellValue(String.valueOf(caseInitatedBy));
-                                ConventionalVendorCandidatesSubmitted conventionalVendorCandidatesSubmitted = conventionalCandidatesSubmittedRepository.findById(vendorChecks.getCandidate().getConventionalCandidateId()).get();
-                                dataRow.createCell(2).setCellValue(conventionalVendorCandidatesSubmitted.getApplicantId());
-                                dataRow.createCell(3).setCellValue(vendorChecks.getCandidateName());
-                                dataRow.createCell(4).setCellValue(String.valueOf(vendorChecks.getCreatedOn()));
+                                if (caseInitatedBy.getUserName() != null) {
+                                    dataRow.createCell(1).setCellValue(String.valueOf(caseInitatedBy.getUserName()));
+                                }
+
+                                ConventionalVendorCandidatesSubmitted conventionalVendorCandidatesSubmitted = conventionalCandidatesSubmittedRepository.findByRequestId(String.valueOf(vendorChecks.getCandidate().getConventionalRequestId()));
+                                if (conventionalVendorCandidatesSubmitted != null) {
+                                    dataRow.createCell(2).setCellValue(conventionalVendorCandidatesSubmitted.getApplicantId());
+                                }
+                                if (vendorChecks.getCandidateName() != null) {
+                                    dataRow.createCell(3).setCellValue(vendorChecks.getCandidateName());
+                                }
+                                if (vendorChecks.getCreatedOn() != null) {
+                                    dataRow.createCell(4).setCellValue(String.valueOf(vendorChecks.getCreatedOn()));
+                                }
                                 CandidateVerificationState canidateVerificationData = candidateVerificationStateRepository.findByCandidateCandidateId(vendorChecks.getCandidate().getCandidateId());
                                 if (canidateVerificationData != null) {
                                     dataRow.createCell(5).setCellValue(String.valueOf(canidateVerificationData.getInterimReportTime()));
                                 }
-
                                 List<VendorMasterNew> byUserId = vendorMasterNewRepository.findByUserId(vendorId);
                                 byUserId.forEach(data -> {
-                                    dataRow.createCell(9).setCellValue(data.getRatePerItem());
-                                    dataRow.createCell(11).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size() * data.getRatePerItem());
+                                    if (data.getRatePerItem() != null) {
+                                        dataRow.createCell(9).setCellValue(data.getRatePerItem());
+                                    }
+                                    if (byCandidateIdANdVendorIdAndCandidateId.isEmpty() == false) {
+                                        dataRow.createCell(11).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size() * data.getRatePerItem());
+                                    }
                                 });
-                                dataRow.createCell(6).setCellValue(conventionalVendorCandidatesSubmitted.getVerificationStatus());
-                                dataRow.createCell(7).setCellValue(vendorChecks.getSource().getSourceName());
-                                dataRow.createCell(8).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size());
-
-                                dataRow.createCell(10).setCellValue(vendorChecks.getVendorCheckStatusMaster().getCheckStatusCode());
-
+                                if (conventionalVendorCandidatesSubmitted.getVerificationStatus() != null) {
+                                    dataRow.createCell(6).setCellValue(conventionalVendorCandidatesSubmitted.getVerificationStatus());
+                                }
+                                if (vendorChecks.getSource().getSourceName() != null) {
+                                    dataRow.createCell(7).setCellValue(vendorChecks.getSource().getSourceName());
+                                }
+                                if (byCandidateIdANdVendorIdAndCandidateId.isEmpty() == false) {
+                                    dataRow.createCell(8).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size());
+                                }
+                                if (vendorChecks.getVendorCheckStatusMaster() != null) {
+                                    dataRow.createCell(10).setCellValue(vendorChecks.getVendorCheckStatusMaster().getCheckStatusCode());
+                                }
                             }
 
                         }
@@ -2799,6 +2846,7 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
             File nanda = FileUtil.createUniqueTempFile("nanda", ".xlsx");
 
             FileOutputStream fileOutputStream = new FileOutputStream(nanda);
+            List<? extends Name> allNames = workbook.getAllNames();
             workbook.write(fileOutputStream);
             byte[] fileContent = Files.readAllBytes(Paths.get(nanda.getAbsolutePath()));
             String base64String = Base64.getEncoder().encodeToString(fileContent);
@@ -2808,6 +2856,125 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
         }
         return serviceOutcome;
     }
+
+//    public ServiceOutcome<List<ReportUtilizationDto>> generateJsonResponse3() throws Exception {
+//
+//        ServiceOutcome<List<ReportUtilizationDto>> serviceOutcome = new ServiceOutcome<>();
+//        List<ReportUtilizationDto> reportUtilizationDtos = new ArrayList<>();
+//        try {
+//            Workbook workbook = new XSSFWorkbook();
+//            List<ReportUtilizationVendorDto> allVendorCandidateAndSourceId = vendorChecksRepository.findAllVendorCandidateAndSourceId();
+//
+//            CellStyle headerCellStyle = workbook.createCellStyle();
+//            headerCellStyle.setFillForegroundColor(IndexedColors.PALE_BLUE.getIndex());
+//            headerCellStyle.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//            CellStyle headerCellStyle2 = workbook.createCellStyle();
+//            headerCellStyle2.setFillForegroundColor(IndexedColors.LIGHT_GREEN.getIndex());
+//            headerCellStyle2.setFillPattern(FillPatternType.SOLID_FOREGROUND);
+//            for (ReportUtilizationVendorDto reportUtilizationVendorDto : allVendorCandidateAndSourceId) {
+//                List<String> sourceId = reportUtilizationVendorDto.getSourceId();
+//                Long candidateId = reportUtilizationVendorDto.getCandidateId();
+//                Long vendorId = reportUtilizationVendorDto.getVendorId();
+//                for (String sourceIdData : sourceId) {
+//                    ArrayList<ChecksDto> checksDtos = new ArrayList<>();
+//                    String[] split = sourceIdData.split(",");
+//                    for (int j = 0; j < split.length; j++) {
+//                        String srcid = split[j];
+//                        Source source = sourceRepository.findById(Long.valueOf(srcid)).get();
+//                        Sheet sheet = workbook.getSheet(source.getSourceName());
+//                        if (sheet == null) {
+//                            sheet = workbook.createSheet(source.getSourceName());
+//                            sheet.setDefaultColumnWidth(25);
+//                            Row headerRow = sheet.createRow(2);
+//                            headerRow.createCell(0).setCellValue("Vendor Name");
+//                            headerRow.createCell(1).setCellValue("Case Initiated by (DigiVerifier Spoc))");
+//                            headerRow.createCell(2).setCellValue("URN / Ref No.");
+//                            headerRow.createCell(3).setCellValue("Candidate Name");
+//                            headerRow.createCell(4).setCellValue("Case Assigned Date");
+//                            headerRow.createCell(5).setCellValue("Report Submitted Date");
+//                            headerRow.createCell(6).setCellValue("Report Color Code");
+//                            for (int i = 0; i <= 6; i++) {
+//                                Cell cell = headerRow.getCell(i);
+//                                cell.setCellStyle(headerCellStyle);
+//                            }
+//                            // License check data
+//                            headerRow.createCell(7).setCellValue("Detail Name");
+//                            headerRow.createCell(8).setCellValue("Qty");
+//                            headerRow.createCell(9).setCellValue("Price Per Unit");
+//                            headerRow.createCell(10).setCellValue("Color Code");
+//                            headerRow.createCell(11).setCellValue("Total Amount");
+//                            for (int i = 7; i <= 11; i++) {
+//                                Cell cell = headerRow.getCell(i);
+//                                cell.setCellStyle(headerCellStyle2);
+//                            }
+//                        }
+//                        int rowno = sheet.getLastRowNum() + 1;
+//                        int datarowNo = sheet.getLastRowNum() + 2;
+//
+//                        List<VendorChecks> byCandidateIdANdVendorIdAndCandidateId = vendorChecksRepository.findByCandidateIdANdVendorIdAndCandidateId(vendorId, candidateId, source.getSourceId());
+//                        for (VendorChecks vendorChecks : byCandidateIdANdVendorIdAndCandidateId) {
+//                            Row dataRow = sheet.createRow(datarowNo);
+//                            User user = userRepository.findById(vendorId).get();
+//                            if (user.getUserFirstName() != null) {
+//                                dataRow.createCell(0).setCellValue(user.getUserFirstName());
+//                            }
+//                            User caseInitatedBy = userRepository.findById(vendorChecks.getCreatedBy().getUserId()).get();
+//                            if (caseInitatedBy.getUserName() != null) {
+//                                dataRow.createCell(1).setCellValue(String.valueOf(caseInitatedBy.getUserName()));
+//                            }
+//
+//                            ConventionalVendorCandidatesSubmitted conventionalVendorCandidatesSubmitted = conventionalCandidatesSubmittedRepository.findByRequestId(String.valueOf(vendorChecks.getCandidate().getConventionalRequestId()));
+//                            if (conventionalVendorCandidatesSubmitted != null) {
+//                                dataRow.createCell(2).setCellValue(conventionalVendorCandidatesSubmitted.getApplicantId());
+//                            }
+//                            if (vendorChecks.getCandidateName() != null) {
+//                                dataRow.createCell(3).setCellValue(vendorChecks.getCandidateName());
+//                            }
+//                            if (vendorChecks.getCreatedOn() != null) {
+//                                dataRow.createCell(4).setCellValue(String.valueOf(vendorChecks.getCreatedOn()));
+//                            }
+//                            CandidateVerificationState candidateVerificationData = candidateVerificationStateRepository.findByCandidateCandidateId(vendorChecks.getCandidate().getCandidateId());
+//                            if (candidateVerificationData != null) {
+//                                dataRow.createCell(5).setCellValue(String.valueOf(candidateVerificationData.getInterimReportTime()));
+//                            }
+//                            List<VendorMasterNew> byUserId = vendorMasterNewRepository.findByUserId(vendorId);
+//                            byUserId.forEach(data -> {
+//                                if (data.getRatePerItem() != null) {
+//                                    dataRow.createCell(9).setCellValue(data.getRatePerItem());
+//                                }
+//                                if (!byCandidateIdANdVendorIdAndCandidateId.isEmpty()) {
+//                                    dataRow.createCell(11).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size() * data.getRatePerItem());
+//                                }
+//                            });
+//                            if (conventionalVendorCandidatesSubmitted.getVerificationStatus() != null) {
+//                                dataRow.createCell(6).setCellValue(conventionalVendorCandidatesSubmitted.getVerificationStatus());
+//                            }
+//                            if (vendorChecks.getSource().getSourceName() != null) {
+//                                dataRow.createCell(7).setCellValue(vendorChecks.getSource().getSourceName());
+//                            }
+//                            if (!byCandidateIdANdVendorIdAndCandidateId.isEmpty()) {
+//                                dataRow.createCell(8).setCellValue(byCandidateIdANdVendorIdAndCandidateId.size());
+//                            }
+//                            if (vendorChecks.getVendorCheckStatusMaster() != null) {
+//                                dataRow.createCell(10).setCellValue(vendorChecks.getVendorCheckStatusMaster().getCheckStatusCode());
+//                            }
+//                            datarowNo++;
+//                        }
+//                    }
+//                }
+//            }
+//            File nanda = FileUtil.createUniqueTempFile("nanda", ".xlsx");
+//
+//            FileOutputStream fileOutputStream = new FileOutputStream(nanda);
+//            workbook.write(fileOutputStream);
+//            byte[] fileContent = Files.readAllBytes(Paths.get(nanda.getAbsolutePath()));
+//            String base64String = Base64.getEncoder().encodeToString(fileContent);
+//
+//        } catch (Exception e) {
+//            log.error("error in generate response: " + e.getMessage());
+//        }
+//        return serviceOutcome;
+//    }
 
     public ServiceOutcome<List<ModeOfVerificationStatusMaster>> findAllModeOfVerifcationPerformed() throws Exception {
         ServiceOutcome<List<ModeOfVerificationStatusMaster>> listServiceOutcome = new ServiceOutcome<>();

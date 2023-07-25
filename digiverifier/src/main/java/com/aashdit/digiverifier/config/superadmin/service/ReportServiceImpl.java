@@ -1111,9 +1111,9 @@ public class ReportServiceImpl implements ReportService {
                 content.setContentCategory(ContentCategory.OTHERS);
                 content.setContentSubCategory(ContentSubCategory.PRE_APPROVAL);
                 // System.out.println(content+"*******************************************content");
-                if (reportType.name() == "PRE_OFFER") {
+                if (reportType.name() .equalsIgnoreCase( "PRE_OFFER")) {
                     content.setContentSubCategory(ContentSubCategory.PRE_APPROVAL);
-                } else if (reportType.name() == "FINAL") {
+                } else if (reportType.name() .equalsIgnoreCase( "FINAL")) {
                     content.setContentSubCategory(ContentSubCategory.FINAL);
                 }
                 content.setFileType(FileType.PDF);
