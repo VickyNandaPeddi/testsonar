@@ -863,8 +863,7 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
             }
             ServiceOutcome<List> listServiceOutcome = candidateService.saveConventionalCandidateInformation(fetchVendorConventionalCandidateDto);
 
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             log.info("addConvetionalCandidateData() exception " + e.getMessage());
         }
         log.info("addConvetionalCandidateData() ends");
@@ -3048,9 +3047,7 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
             VendorChecks byVendorcheckId = vendorChecksRepository.findByVendorcheckId(vendorCheckId);
 
             List<ConventionalAttributesMaster> all = conventionalAttributesMasterRepository.findAll();
-            List<ConventionalAttributesMaster> matchingEntities = all.stream()
-                    .filter(attr -> attr.getSourceIds().contains(byVendorcheckId.getSource().getSourceId()))
-                    .collect(Collectors.toList());
+            List<ConventionalAttributesMaster> matchingEntities = all.stream().filter(attr -> attr.getSourceIds().contains(byVendorcheckId.getSource().getSourceId())).collect(Collectors.toList());
 
 
             svcSearchResult.setMessage("Fetched Data");

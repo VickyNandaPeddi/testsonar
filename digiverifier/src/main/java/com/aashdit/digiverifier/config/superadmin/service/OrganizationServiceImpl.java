@@ -727,9 +727,7 @@ public class OrganizationServiceImpl implements OrganizationService {
             query.append("select distinct (sm.organization_id),org.organization_name ");
             query.append("from t_dgv_service_master sm ");
             query.append("join t_dgv_organization_master org on org.organization_id = sm.organization_id where org.is_active =true;");
-
             Query resultQuery = entityManager.createNativeQuery(query.toString());
-
             List<Object[]> organizationObjectList = resultQuery.getResultList();
             List<OrganizationDto> organizationList = organizationObjectList.stream().map(OrganizationDto::new).collect(Collectors.toList());
             if (!organizationList.isEmpty()) {
