@@ -2479,10 +2479,10 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
                     vendorReferenceDataDto.setVendorReferenceData(candidateReferenceDtos);
                     vendorReferenceDataDtos.add(vendorReferenceDataDto);
 
-                } else {
-                    log.info("conventional candidate for Reference check not exists");
                 }
-
+//                else {
+//                    log.info("conventional candidate for Reference check not exists");
+//                }
             } else if (sourceName.contains("EMPLOYMENT")) {
                 Boolean aBoolean = conventionalCandidateExperienceRepository.existsByConventionalCandidateId(vc.getCandidate().getConventionalCandidateId());
                 if (true) {
@@ -2519,10 +2519,10 @@ public class liCheckToPerformServiceImpl implements liCheckToPerformService {
                     vendorReferenceDataDto.setCheckName(vc.getSource().getSourceName());
                     vendorReferenceDataDto.setVendorReferenceData(candidateCafExperienceDtos);
                     vendorReferenceDataDtos.add(vendorReferenceDataDto);
-                } else {
-                    log.info("conventional candidate for Reference check not exists");
                 }
-
+//                else {
+//                    log.info("conventional candidate for Reference check not exists");
+//                }
             } else if (sourceName.contains("EDUCATION")) {
                 Boolean aBoolean = conventionalCafCandidateEducationRepository.existsByConventionalCandidateId(vc.getCandidate().getConventionalCandidateId());
                 if (true) {

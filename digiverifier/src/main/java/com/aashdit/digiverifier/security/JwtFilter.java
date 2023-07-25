@@ -3,6 +3,7 @@ package com.aashdit.digiverifier.security;
 import com.aashdit.digiverifier.config.admin.model.User;
 import com.aashdit.digiverifier.config.admin.service.UserService;
 import com.aashdit.digiverifier.login.model.LoggedInUser;
+import com.itextpdf.awt.geom.CubicCurve2D;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,7 +50,7 @@ public class JwtFilter extends OncePerRequestFilter {
             skipThis = true;
             filterChain.doFilter(httpServletRequest, httpServletResponse);
         } else {
-            if (httpServletRequest.getRequestURI().contains("/api") && skipThis == false) {
+            if (httpServletRequest.getRequestURI().contains("/api")) {
                 String authorizationHeader = httpServletRequest.getHeader("Authorization");
                 String token = null;
                 String userName = null;
@@ -109,7 +110,5 @@ public class JwtFilter extends OncePerRequestFilter {
                 filterChain.doFilter(httpServletRequest, httpServletResponse);
             }
         }
-
     }
-
 }
