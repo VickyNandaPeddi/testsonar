@@ -42,7 +42,6 @@ public class JwtFilter extends OncePerRequestFilter {
 
         httpServletResponse.setHeader("Access-Control-Allow-Methods", "GET,PUT,POST,OPTIONS");
         httpServletResponse.setHeader("Access-Control-Allow-Credentials", "true");
-
         httpServletResponse.setHeader("Access-Control-Allow-Headers", "Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With, No-Auth");
 
         Boolean skipThis = false;
@@ -110,5 +109,8 @@ public class JwtFilter extends OncePerRequestFilter {
                 filterChain.doFilter(httpServletRequest, httpServletResponse);
             }
         }
+    }
+
+    public void destroy() {
     }
 }
